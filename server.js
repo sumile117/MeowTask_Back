@@ -1,6 +1,6 @@
 const express = require("express");
 const app = express();
-const { pool, initializeDatabase } = require("./db-controler");
+const { pool, initializeDatabase } = require("./dao");
 const Router = require("./router/router");
 
 app.use(express.json());

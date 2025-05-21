@@ -1,4 +1,4 @@
-const db = require("../db-controler");
+const db = require("../dao");
 
 const getAllTasks = async (req, res) => {
   try {
