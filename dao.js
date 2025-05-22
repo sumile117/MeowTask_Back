@@ -4,8 +4,8 @@ const mysql = require("mysql2/promise");
 const dbConfig = {
   host: "localhost", // 数据库主机地址
   user: "root", // 数据库用户名
-  password: "8899", // 数据库密码
-  database: "meowdata", // 要连接的数据库名
+  password: "123456", // 数据库密码
+  database: "meowtask", // 要连接的数据库名
   port: "3306",
   waitForConnections: true,
   connectionLimit: 10,
@@ -25,7 +25,21 @@ async function initializeDatabase() {
         completed BOOLEAN DEFAULT false
       )
     `);
-    console.log("Database initialized");
+
+    // 创建 users 表
+    await pool.execute(`      CREATE TABLE IF NOT EXISTS users (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          username VARCHAR(50) UNIQUE NOT NULL,
+          password VARCHAR(255) NOT NULL,
+          create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+          update_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+          last_login_time DATETIME,
+          sex TINYINT UNSIGNED DEFAULT 0,
+          point INT DEFAULT 0
+      )
+    `);
+
+    console.log("Database initialized: tables 'tasks' and 'users' are ready.");
   } catch (error) {
     console.error("Error initializing database:", error);
     throw error;
