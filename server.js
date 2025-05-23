@@ -3,6 +3,20 @@ const app = express();
 const { pool, initializeDatabase } = require("./dao");
 const Router = require("./router/router");
 
+
+const cors = require('cors');
+
+
+// 启用 CORS（开发环境可开放所有来源）
+app.use(cors());
+
+// 或者更安全的方式（指定允许的域名）：
+// app.use(cors({
+//   origin: 'http://localhost:5173'
+// }));
+
+// 其他中间件和路由...
+
 app.use(express.json());
 app.use(Router);
 const port = 3000;

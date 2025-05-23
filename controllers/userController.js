@@ -6,23 +6,26 @@ const bcrypt = require('bcrypt');
 exports.login = async (req, res) => {
     const { username, password } = req.body;
 
+    if (!username || !password) {
+        return res.status(400).json({ message: '用户名和密码不能为空' });
+    }
     try {
-        // 查询数据库中是否存在该用户
+        //user = await exports.getUserByUsername(username);
+        //控制台打印用户信息
         const [rows] = await db.pool.execute("SELECT * FROM users WHERE username = ?", [username]);
-        const user = rows[0];
-
+        user = rows[0];
+        console.log(user);
         if (!user) {
             return res.status(404).json({ message: '用户不存在' });
         }
-        // 检查密码是否正确
+
         const isPasswordValid = await bcrypt.compare(password, user.password);
         if (!isPasswordValid) {
             return res.status(401).json({ message: '密码错误' });
         }
-        // 更新最后登录时间
+
         await db.pool.execute("UPDATE users SET last_login_time = CURRENT_TIMESTAMP WHERE id = ?", [user.id]);
 
-        // 登录成功返回用户信息
         return res.status(200).json({
             message: '登录成功',
             user: {
@@ -38,9 +41,14 @@ exports.login = async (req, res) => {
     }
 };
 
+
 // 用户注册
 exports.register = async (req, res) => {
     const { username, password } = req.body;
+
+    if (!username || !password) {
+        return res.status(400).json({ message: '用户名和密码不能为空' });
+    }
 
     try {
         // 检查用户名是否已存在
@@ -133,4 +141,33 @@ exports.getUserById = async (req, res) => {
         return res.status(500).json({ message: '服务器内部错误' });
     }
 };
+
+// 根据username查询用户
+exports.getUserByUsername = async (req, res) => {
+    const username = req.params.username;
+    try {
+        const [rows] = await db.pool.execute('SELECT * FROM users WHERE username = ?', [username]);
+        const user = rows[0];
+
+        if (!user) {
+            return res.status(404).json({ message: '用户不存在' });
+        }
+
+        return res.status(200).json({
+            message: '查询成功',
+            user: {
+                id: user.id,
+                username: user.username,
+                create_time: user.create_time,
+                update_time: user.update_time,
+                last_login_time: user.last_login_time,
+                sex: user.sex,
+                point: user.point
+            }
+        });
+    } catch (error) {
+        console.error('查询用户出错:', error);
+        return res.status(500).json({ message: '服务器内部错误' });
+    }
+}
 
