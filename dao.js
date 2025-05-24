@@ -4,8 +4,8 @@ const mysql = require("mysql2/promise");
 const dbConfig = {
   host: "localhost", // 数据库主机地址
   user: "root", // 数据库用户名
-  password: "123456", // 数据库密码
-  database: "meowtask", // 要连接的数据库名
+  password: "8899", // 数据库密码
+  database: "meowdata", // 要连接的数据库名
   port: "3306",
   waitForConnections: true,
   connectionLimit: 10,
@@ -22,6 +22,10 @@ async function initializeDatabase() {
       CREATE TABLE IF NOT EXISTS tasks (
         id INT PRIMARY KEY AUTO_INCREMENT,
         title VARCHAR(255) NOT NULL,
+        deadline TIMESTAMP DEFAULT NULL,
+        tag VARCHAR(255) DEFAULT NULL,
+        integral INT DEFAULT NULL,
+        summary TEXT DEFAULT NULL,
         completed BOOLEAN DEFAULT false
       )
     `);

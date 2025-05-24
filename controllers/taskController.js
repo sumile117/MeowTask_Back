@@ -40,14 +40,21 @@ const getTheTask = async (req, res) => {
 //创建特定的日程
 const createTask = async (req, res) => {
   try {
-    const { title, completed = false } = req.body;
+    const {
+      title,
+      deadline,
+      tag,
+      integral,
+      summary,
+      completed = false,
+    } = req.body;
     if (!title) {
       return res.status(400).json({ message: "Title is required" });
     }
 
     const [result] = await db.pool.execute(
-      "INSERT INTO tasks (title, completed) VALUES (?, ?)",
-      [title, completed]
+      "INSERT INTO tasks (title,deadline,tag,integral,summary, completed) VALUES (?, ?,?,?,?,?)",
+      [title,deadline,tag,integral,summary, completed]
     );
 
     const newTask = {
