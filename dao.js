@@ -18,16 +18,19 @@ const pool = mysql.createPool(dbConfig);
 // 数据库初始化函数
 async function initializeDatabase() {
   try {
-    await pool.execute(`
-      CREATE TABLE IF NOT EXISTS tasks (
-        id INT PRIMARY KEY AUTO_INCREMENT,
-        title VARCHAR(255) NOT NULL,
-        deadline TIMESTAMP DEFAULT NULL,
-        tag VARCHAR(255) DEFAULT NULL,
-        integral INT DEFAULT NULL,
-        summary TEXT DEFAULT NULL,
-        completed BOOLEAN DEFAULT false
-      )
+
+    //创建tasks表，包含创建时间，修改时间，截止时期（年月日），完成状态，标签（重要，紧急，常规），描述，积分
+    await pool.execute(`CREATE TABLE IF NOT EXISTS tasks (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        description TEXT,
+        deadline DATE,
+        completed BOOLEAN DEFAULT FALSE,
+        priority ENUM('low', 'medium', 'high') DEFAULT 'low',
+        coin INT DEFAULT 2,
+        create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+        update_time DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
     `);
 
     // 创建 users 表
