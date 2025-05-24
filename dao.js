@@ -22,6 +22,7 @@ async function initializeDatabase() {
     //创建tasks表，包含创建时间，修改时间，截止时期（年月日），完成状态，标签（重要，紧急，常规），描述，积分
     await pool.execute(`CREATE TABLE IF NOT EXISTS tasks (
         id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT UNIQUE,
         name VARCHAR(255) NOT NULL,
         description TEXT,
         deadline DATE,
@@ -42,7 +43,7 @@ async function initializeDatabase() {
           update_time DATETIME DEFAULT CURRENT_TIMESTAMP,
           last_login_time DATETIME,
           sex TINYINT UNSIGNED DEFAULT 0,
-          point INT DEFAULT 0
+          coin INT DEFAULT 0
       )
     `);
 
