@@ -24,7 +24,7 @@ async function initializeDatabase() {
         id INT AUTO_INCREMENT PRIMARY KEY,
         name VARCHAR(255) NOT NULL,
         description TEXT,
-        deadline DATE,
+        deadline TEXT,
         completed BOOLEAN DEFAULT FALSE,
         priority ENUM('low', 'medium', 'high') DEFAULT 'low',
         coin INT DEFAULT 2,
