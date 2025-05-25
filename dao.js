@@ -29,7 +29,8 @@ async function initializeDatabase() {
         priority ENUM('low', 'medium', 'high') DEFAULT 'low',
         coin INT DEFAULT 2,
         create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
-        update_time DATETIME DEFAULT CURRENT_TIMESTAMP
+        update_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+        tag VARCHAR(255)
     )
     `);
 

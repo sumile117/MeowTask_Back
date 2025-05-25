@@ -42,14 +42,21 @@ const getTheTask = async (req, res) => {
 //创建特定的日程
 const createTask = async (req, res) => {
   try {
-    const { name = null, description = null, completed = false, coin } = req.body;
+    const {
+      name = null,
+      description = null,
+      completed = false,
+      coin,
+      deadline,
+      tag
+    } = req.body;
     if (!name) {
       return res.status(400).json({ message: "Name is required" });
     }
 
     const [result] = await db.pool.execute(
-      "INSERT INTO tasks (name, description, completed, coin) VALUES (?, ?, ?, ?)",
-      [name, description, completed, coin]
+      "INSERT INTO tasks (name, description, completed, coin, deadline, tag) VALUES (?, ?, ?, ?, ?, ?)",
+      [name, description, completed, coin, deadline, tag]
     );
 
     const newTask = {
@@ -57,7 +64,9 @@ const createTask = async (req, res) => {
       name,
       description,
       completed,
-      coin
+      coin,
+      deadline,
+      tag,
     };
 
     res.status(201).json(newTask);
@@ -97,24 +106,32 @@ const deleteTask = async (req, res) => {
 //更新特定的日程
 const updateTask = async (req, res) => {
   try {
-      const id = parseInt(req.params.id);
-      const { name, description, completed, coin } = req.body;
-      if (!name && !description && !completed && !coin) {
-          return res.status(400).json({ message: "至少需要提供 name、description、completed 或 coin" });
-      }
-      const [result] = await db.pool.execute(
-          "UPDATE tasks SET name = ?, description = ?, completed = ?, coin = ? WHERE id = ?",
-          [name, description, completed, coin, id]
-      );
-      if (result.affectedRows === 0) {
-          res.status(404).json({ message: "Task not found" });
-      } else {
-          res.status(200).json({ message: "Task updated successfully" });
-      }
+    const id = parseInt(req.params.id);
+    const { name, description, completed, coin, deadline, tag } = req.body;
+    if (!name && !description && !completed && !coin) {
+      return res
+        .status(400)
+        .json({ message: "至少需要提供 name、description、completed 或 coin" });
+    }
+    const [result] = await db.pool.execute(
+      "UPDATE tasks SET name = ?, description = ?, completed = ?, coin = ?, deadline = ?, tag = ? WHERE id = ?",
+      [name, description, completed, coin, deadline, tag, id]
+    );
+    if (result.affectedRows === 0) {
+      res.status(404).json({ message: "Task not found" });
+    } else {
+      res.status(200).json({ message: "Task updated successfully" });
+    }
   } catch (error) {
-      console.error("Error updating task:", error);
-      res.status(500).json({ message: "Internal server error" });
+    console.error("Error updating task:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
-module.exports = { getAllTasks, getTheTask, createTask, deleteTask, updateTask };
+module.exports = {
+  getAllTasks,
+  getTheTask,
+  createTask,
+  deleteTask,
+  updateTask,
+};
