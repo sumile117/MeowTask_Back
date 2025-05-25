@@ -2,10 +2,6 @@ const express = require("express");
 const app = express();
 const { pool, initializeDatabase } = require("./dao");
 const Router = require("./router/router");
-const cors = require("cors");
-app.use(cors()); //使用cors中间件
-
-
 const cors = require('cors');
 
 
