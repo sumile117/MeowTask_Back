@@ -3,7 +3,9 @@ const app = express();
 const { pool, initializeDatabase } = require("./dao");
 const Router = require("./router/router");
 
+
 const cors = require('cors');
+
 
 // 启用 CORS（开发环境可开放所有来源）
 app.use(cors());
