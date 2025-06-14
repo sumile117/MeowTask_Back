@@ -1,4 +1,5 @@
 const db = require("../dao");
+const aiClient = require("../utils/aiClient"); // 根据实际路径调整
 
 const getAllTasks = async (req, res) => {
   try {
@@ -40,23 +41,69 @@ const getTheTask = async (req, res) => {
 };
 
 //创建特定的日程
+// const createTask = async (req, res) => {
+//   try {
+//     const { name = null, description = null, completed = false, coin } = req.body;
+//     if (!name) {
+//       return res.status(400).json({ message: "Name is required" });
+//     }
+//
+//     const [result] = await db.pool.execute(
+//       "INSERT INTO tasks (name, description, completed, coin) VALUES (?, ?, ?, ?)",
+//       [name, description, completed, coin]
+//     );
+//
+//     const newTask = {
+//       id: result.insertId,
+//       name,
+//       description,
+//       completed,
+//       coin,
+//     };
+//
+//     res.status(201).json(newTask);
+//   } catch (error) {
+//     console.error("Error creating task:", error);
+//     res.status(500).json({ message: "Internal server error" });
+//   }
+// };
 const createTask = async (req, res) => {
   try {
-    const {
-      name = null,
-      description = null,
-      completed = false,
-      coin,
-      deadline,
-      tag
-    } = req.body;
+    const { name = null, description = null, completed = false } = req.body;
     if (!name) {
       return res.status(400).json({ message: "Name is required" });
     }
 
+    // 构建 Prompt
+    const userInput = `我打算新增一个任务：${name}，描述是：${description}`;
+    const prompt = aiClient.prompt(userInput, name, description);
+
+    // 调用 AI
+    const aiResponse = await aiClient.sendMessage(prompt);
+
+    // 解析响应
+    let parsedResult;
+    try {
+      parsedResult = JSON.parse(aiResponse);
+    } catch (e) {
+      parsedResult = {
+        is_task: true,
+        suggested_coin: 2,
+        feedback: "喵~ 分析失败，默认给你2个金币喵~"
+      };
+    }
+    console.log(parsedResult);
+
+    if (!parsedResult.is_task) {
+      return res.status(400).json({ message: parsedResult.feedback });
+    }
+
+    const suggestedCoin = parsedResult.suggested_coin;
+
+    // 插入数据库
     const [result] = await db.pool.execute(
-      "INSERT INTO tasks (name, description, completed, coin, deadline, tag) VALUES (?, ?, ?, ?, ?, ?)",
-      [name, description, completed, coin, deadline, tag]
+        "INSERT INTO tasks (name, description, completed, coin) VALUES (?, ?, ?, ?)",
+        [name, description, completed, suggestedCoin]
     );
 
     const newTask = {
@@ -64,12 +111,14 @@ const createTask = async (req, res) => {
       name,
       description,
       completed,
-      coin,
-      deadline,
-      tag,
+      coin: suggestedCoin
     };
 
-    res.status(201).json(newTask);
+    res.status(201).json({
+      ...newTask,
+      feedback: parsedResult.feedback
+    });
+
   } catch (error) {
     console.error("Error creating task:", error);
     res.status(500).json({ message: "Internal server error" });
@@ -106,32 +155,24 @@ const deleteTask = async (req, res) => {
 //更新特定的日程
 const updateTask = async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
-    const { name, description, completed, coin, deadline, tag } = req.body;
-    if (!name && !description && !completed && !coin) {
-      return res
-        .status(400)
-        .json({ message: "至少需要提供 name、description、completed 或 coin" });
-    }
-    const [result] = await db.pool.execute(
-      "UPDATE tasks SET name = ?, description = ?, completed = ?, coin = ?, deadline = ?, tag = ? WHERE id = ?",
-      [name, description, completed, coin, deadline, tag, id]
-    );
-    if (result.affectedRows === 0) {
-      res.status(404).json({ message: "Task not found" });
-    } else {
-      res.status(200).json({ message: "Task updated successfully" });
-    }
+      const id = parseInt(req.params.id);
+      const { name, description, completed, coin } = req.body;
+      if (!name && !description && !completed && !coin) {
+          return res.status(400).json({ message: "至少需要提供 name、description、completed 或 coin" });
+      }
+      const [result] = await db.pool.execute(
+          "UPDATE tasks SET name = ?, description = ?, completed = ?, coin = ? WHERE id = ?",
+          [name, description, completed, coin, id]
+      );
+      if (result.affectedRows === 0) {
+          res.status(404).json({ message: "Task not found" });
+      } else {
+          res.status(200).json({ message: "Task updated successfully" });
+      }
   } catch (error) {
-    console.error("Error updating task:", error);
-    res.status(500).json({ message: "Internal server error" });
+      console.error("Error updating task:", error);
+      res.status(500).json({ message: "Internal server error" });
   }
 };
 
-module.exports = {
-  getAllTasks,
-  getTheTask,
-  createTask,
-  deleteTask,
-  updateTask,
-};
+module.exports = { getAllTasks, getTheTask, createTask, deleteTask, updateTask };

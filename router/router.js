@@ -34,4 +34,9 @@ router.post("/updatePassword", updatePassword);
 router.get("/users/id/:id", getUserById);
 router.get("/users/username/:username", getUserByUsername);
 
+const {
+    chatWithAI
+} = require("../controllers/aiController");
+router.post("/ai/chat", chatWithAI);
+
 module.exports = router;
