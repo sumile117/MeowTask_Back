@@ -175,4 +175,23 @@ const updateTask = async (req, res) => {
   }
 };
 
-module.exports = { getAllTasks, getTheTask, createTask, deleteTask, updateTask };
+//完成任务
+const completeTask = async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const [result] = await db.pool.execute(
+      "UPDATE tasks SET completed = 1 WHERE id = ?",
+      [id]
+    );
+    if (result.affectedRows === 0) {
+      res.status(404).json({ message: "Task not found" });
+    } else {
+      res.status(200).json({ message: "Task completed successfully" });
+    }
+  } catch (error) {
+    console.error("Error completing task:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}
+
+module.exports = { getAllTasks, getTheTask, createTask, deleteTask, updateTask, completeTask };
