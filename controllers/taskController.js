@@ -69,7 +69,7 @@ const getTheTask = async (req, res) => {
 // };
 const createTask = async (req, res) => {
   try {
-    const { name = null, description = null, completed = false } = req.body;
+    const { name = null, description = null, completed = false, deadline = null } = req.body;
     if (!name) {
       return res.status(400).json({ message: "Name is required" });
     }
@@ -102,8 +102,8 @@ const createTask = async (req, res) => {
 
     // 插入数据库
     const [result] = await db.pool.execute(
-        "INSERT INTO tasks (name, description, completed, coin) VALUES (?, ?, ?, ?)",
-        [name, description, completed, suggestedCoin]
+        "INSERT INTO tasks (name, description, completed, coin, deadline) VALUES (?, ?, ?, ?, ?)",
+        [name, description, completed, suggestedCoin, deadline]
     );
 
     const newTask = {
@@ -111,7 +111,8 @@ const createTask = async (req, res) => {
       name,
       description,
       completed,
-      coin: suggestedCoin
+      coin: suggestedCoin,
+      deadline
     };
 
     res.status(201).json({
@@ -155,23 +156,55 @@ const deleteTask = async (req, res) => {
 //更新特定的日程
 const updateTask = async (req, res) => {
   try {
-      const id = parseInt(req.params.id);
-      const { name, description, completed, coin } = req.body;
-      if (!name && !description && !completed && !coin) {
-          return res.status(400).json({ message: "至少需要提供 name、description、completed 或 coin" });
-      }
-      const [result] = await db.pool.execute(
-          "UPDATE tasks SET name = ?, description = ?, completed = ?, coin = ? WHERE id = ?",
-          [name, description, completed, coin, id]
-      );
-      if (result.affectedRows === 0) {
-          res.status(404).json({ message: "Task not found" });
-      } else {
-          res.status(200).json({ message: "Task updated successfully" });
-      }
+    const id = parseInt(req.params.id);
+    const { name, description, completed, coin, deadline } = req.body;
+
+    // 构建要更新的字段和对应的值
+    const fields = [];
+    const values = [];
+
+    if (name !== undefined) {
+      fields.push("name = ?");
+      values.push(name);
+    }
+    if (description !== undefined) {
+      fields.push("description = ?");
+      values.push(description);
+    }
+    if (completed !== undefined) {
+      fields.push("completed = ?");
+      values.push(completed);
+    }
+    if (coin !== undefined) {
+      fields.push("coin = ?");
+      values.push(coin);
+    }
+    if (deadline !== undefined) {
+      fields.push("deadline = ?");
+      values.push(deadline);
+    }
+
+    // 如果没有任何字段需要更新
+    if (fields.length === 0) {
+      return res.status(400).json({ message: "No fields to update" });
+    }
+
+    // 构建最终 SQL 语句
+    const sql = `UPDATE tasks SET ${fields.join(", ")} WHERE id = ?`;
+    values.push(id); // 添加 ID 参数到最后
+
+    // 执行 SQL
+    const [result] = await db.pool.execute(sql, values);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Task not found" });
+    }
+
+    res.status(200).json({ message: "Task updated successfully" });
+
   } catch (error) {
-      console.error("Error updating task:", error);
-      res.status(500).json({ message: "Internal server error" });
+    console.error("Error updating task:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -180,8 +213,8 @@ const completeTask = async (req, res) => {
   try {
     const id = parseInt(req.params.id);
     const [result] = await db.pool.execute(
-      "UPDATE tasks SET completed = 1 WHERE id = ?",
-      [id]
+        "UPDATE tasks SET completed = 1 WHERE id = ?",
+        [id]
     );
     if (result.affectedRows === 0) {
       res.status(404).json({ message: "Task not found" });

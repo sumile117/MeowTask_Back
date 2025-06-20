@@ -1,6 +1,6 @@
 const axios = require("axios");
 
-const DEEPSEEK_API_KEY = "sk-0e1fb74e27d5495aa8eaa3a170ef7ad7";
+const DEEPSEEK_API_KEY = " ";
 const DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions";
 
 const prompt = (userInput, taskName = null, taskDescription = null) => {
